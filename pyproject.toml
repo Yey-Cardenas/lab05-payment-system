@@ -1,0 +1,13 @@
+# pyproject.toml
+[tool.pytest.ini_options]
+addopts = "--cov=payment_system --cov-report=term-missing --cov-report=html"
+testpaths = ["tests"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = false
+
+[tool.coverage.run]
+source = ["payment_system"]
+omit = ["tests/*", "**/__init__.py"]
