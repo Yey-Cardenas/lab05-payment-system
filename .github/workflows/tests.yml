@@ -1,0 +1,38 @@
+# .github/workflows/tests.yml
+name: CI - Pruebas Unitarias y Cobertura
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+
+      - name: Ejecutar pruebas con validación de cobertura (≥80%)
+        run: pytest --cov=payment_system --cov-fail-under=80
+
+      - name: Subir reporte de cobertura como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-py${{ matrix.python-version }}
+          path: htmlcov/
