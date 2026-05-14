@@ -8,11 +8,13 @@ on:
 
 jobs:
   python-tests:
+    name: Tests Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    
     strategy:
+      fail-fast: false  # Ambas versiones corren aunque una falle
       matrix:
         python-version: ['3.10', '3.11']
-      fail-fast: false   # ✅ Ambas versiones corren aunque una falle
 
     steps:
       - name: Clonar repositorio
@@ -22,24 +24,29 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'   # ✅ Cachea dependencias para acelerar runs futuros
+          cache: 'pip'  # Cachea dependencias → runs más rápidos
 
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
 
-      - name: Ejecutar pruebas con validación de cobertura (≥80%)
+      - name: Ejecutar pruebas con cobertura (≥80%)
         run: |
-          pytest --cov=payment_system \
-                 --cov-fail-under=80 \
-                 --cov-report=html \
-                 --cov-report=term-missing   # ✅ Muestra líneas no cubiertas en el log
+          pytest \
+            --cov=payment_system \
+            --cov-fail-under=80 \
+            --cov-report=html \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            -v
 
       - name: Subir reporte de cobertura como artefacto
         uses: actions/upload-artifact@v4
-        if: always()   # ✅ Sube el reporte aunque los tests fallen
+        if: always()  # Sube el reporte aunque los tests fallen
         with:
           name: coverage-report-py${{ matrix.python-version }}
-          path: htmlcov/
-          retention-days: 7   # ✅ Limpia artefactos automáticamente
+          path: |
+            htmlcov/
+            coverage.xml
+          retention-days: 7  # Limpia artefactos automáticamente
